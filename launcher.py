@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jan 17 09:46:55 2022
-
 @author: michael
 """
 import matplotlib.pyplot as plt
@@ -19,8 +18,15 @@ class Launcher:
     u_y = 0
     theta = 0 # in radians
     r = 0
+    c_d = 1
     times = []
     
+    acceleration_distance = 0
+    acceleration_force = 10
+    exit_angle = 45
+    c_f = 0.1
+
+    """------------------------------trajectory-----------------------------"""    
 
     def set_components(self, x, y):
         """sets the components of velocity from the x and y components.
@@ -60,15 +66,76 @@ class Launcher:
     
     
     def get_range(self):
-        """returns the distance the ball travells"""
+        """returns the distance the ball travells in a vaccum"""
         return self.get_time_of_flight() * self.u_x
-
+    
+    
+    def get_range_drag(self, dt=0.001):
+        """numerically finds the distance the ball should travel including drag"""
+        height = 0
+        distance = 0
+        v_x = self.u_x
+        v_y = self.u_y
+        a_x = 0
+        a_y = 0
+        F_x = 0
+        F_y = 0
+        vs=[]
+        
+        rho = 1.225
+        
+        area = 0.005
+        while True:
+            vs.append(v_x)
+            height = height + v_y * dt
+            distance = distance + v_x * dt
+            
+            a_x = rho * 0.5 * self.c_d * v_x ** 2 * area * -1
+            a_y = (rho * 0.5 * self.c_d * v_y ** 2 * area * -1) + self.g
+            
+            v_y = v_y + a_y * dt
+            v_x = v_x + a_x * dt
+            #print(v_x, v_y, a_x, a_y, height)
+            
+            if height <= 0:
+                break
+        return(distance)
+        #plt.plot(vs)
 
     def plot_angle_v_range(self):
+        """plots the distance the projectile gets to across angles, one with
+        and one without drag"""
         angles = np.linspace (0, (np.pi) / 2)
+        dRanges = []
         ranges = []
         for theta in angles:
             self.set_angles(self.r, theta)
+            dRanges.append(self.get_range_drag())
             ranges.append(self.get_range())
-        plt.plot(np.degrees(angles), ranges)
+        plt.plot(np.degrees(angles), ranges, label = "vaccum")
+        plt.plot(np.degrees(angles), dRanges, label = "drag at c_d of " + str(self.c_d))
+        plt.xlabel("tube angle (°)")
+        plt.ylabel("distance (m)")
+        plt.legend()
+        plt.yticks([1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0,5.5,6.0,6.5])
+        plt.ylim(1.5,6.5)
         plt.show()
+        
+        
+"""-------------------------launch mechanism--------------------------------"""        
+        
+        
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
